@@ -43,12 +43,15 @@ def _validate(cls: Type, val: Any, field: ModelField) -> np.ndarray:
         val = NPFileDesc(**val)
     if isinstance(val, NPFileDesc):
         val: NPFileDesc
-        path = val.path
+        path = val.path.resolve().absolute()
         key = val.key
         if path.suffix.lower() not in [".npz", ".npy"]:
             raise ValidationError("Expected npz or npy file.")
 
-        content = np.load(str(val.path.absolute()))
+        try:
+            content = np.load(str(path))
+        except FileNotFoundError:
+            raise ValidationError(f"Failed to load numpy data from file {path}")
         if path.suffix.lower() == ".npz":
             key = key or content.files[0]
             data = content[key]
