@@ -6,8 +6,8 @@ python:
   - '3.10.2'
   - '3.9'
 env:
-  - NUMPY_VERSION=<1.22
-  - NUMPY_VERSION=>1.22
+  - NUMPY_VERSION="numpy<1.22"
+  - NUMPY_VERSION="numpy>=1.22"
 before_install:
   - python --version
   - pip install -U pip
@@ -15,7 +15,7 @@ before_install:
   - pip install codecov
   - pip install -U pydantic
 install:
-  - pip install -U numpy$NUMPY_VERSION
+  - pip install -U $NUMPY_VERSION
 script: pytest # run tests
 after_success:
   - codecov # submit coverage
