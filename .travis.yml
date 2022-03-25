@@ -12,7 +12,6 @@ before_install:
   - pip install -U pydantic
 install:
   - pip install -q numpy$NUMPY_VERSION
-  - pip install ".[test]" . # install package + test dependencies
 script: pytest # run tests
 after_success:
   - codecov # submit coverage
