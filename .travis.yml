@@ -11,7 +11,7 @@ before_install:
   - pip install codecov
   - pip install -U pydantic
 install:
-  - pip install -q numpy$NUMPY_VERSION
+  - pip install -q numpy$NUMPY_VERSION --user
 script: pytest # run tests
 after_success:
   - codecov # submit coverage
