@@ -20,6 +20,9 @@ cfg = MySettings(K=[1, 2])
 cfg = MySettings(K={"path": Path(path_to) / "array.npy"})
 # Instantiate from npz file with key
 cfg = MySettings(K={"path": Path(path_to) / "array.npz", "key": "K"})
+
+cfg.K
+# np.ndarray[np.float32]
 ```
 
 ## Install
