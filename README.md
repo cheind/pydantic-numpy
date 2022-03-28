@@ -32,6 +32,8 @@ pip install git+https://github.com/cheind/pydantic-numpy.git
 
 ## History
 The original idea originates from [this discussion](https://gist.github.com/danielhfrank/00e6b8556eed73fb4053450e602d2434), but stopped working for `numpy>=1.22`. This repository picks up where the previous discussion ended
- - added support for `numpy>1.22`
- - added automated tests and continuous integration for different numpy/python versions.
  - added designated repository for better handling of PRs
+ - added support for `numpy>1.22`
+ - Dtypes are no longer strings but `np.generics`. I.e. `NDArray['np.float32']` becomes `NDArray[np.float32]`
+ - added automated tests and continuous integration for different numpy/python versions
+ 
