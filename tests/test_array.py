@@ -43,10 +43,10 @@ def test_numpy_field(tmpdir):
     assert_allclose(cfg.K, [0.0, 1.0, 2.0, 3.0, 4.0])
     assert cfg.K.dtype == np.float32
 
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(ValidationError):
         MySettings(K={"path": Path(tmpdir) / "nosuchfile.npz", "key": "values"})
 
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(ValidationError):
         MySettings(K={"path": Path(tmpdir) / "nosuchfile.npy", "key": "nosuchkey"})
 
     with pytest.raises(ValidationError):
