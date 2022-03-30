@@ -49,7 +49,7 @@ def test_numpy_field(tmpdir):
     with pytest.raises(FileNotFoundError):
         MySettings(K={"path": Path(tmpdir) / "nosuchfile.npy", "key": "nosuchkey"})
 
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(ValidationError):
         MySettings(K={"path": Path(tmpdir) / "nosuchfile.npy"})
 
     with pytest.raises(ValidationError):
