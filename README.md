@@ -1,4 +1,4 @@
-[![Build Status](https://app.travis-ci.com/cheind/pydantic-numpy.svg?branch=main)](https://app.travis-ci.com/cheind/pydantic-numpy)
+![Build Status](https://github.com/cheind/pydantic-numpy/actions/workflows/python-package.yml/badge.svg)
 
 # pydantic-numpy
 This tiny library provides support for integrating numpy `np.ndarray`'s into pydantic models / settings. 
