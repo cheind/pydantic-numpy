@@ -1,4 +1,4 @@
-![Build Status](https://github.com/cheind/pydantic-numpy/actions/workflows/python-package.yml/badge.svg)
+[![Build Status](https://github.com/cheind/pydantic-numpy/actions/workflows/python-package.yml/badge.svg)](https://github.com/cheind/pydantic-numpy/actions/workflows/python-package.yml)
 
 # pydantic-numpy
 This tiny library provides support for integrating numpy `np.ndarray`'s into pydantic models / settings. 
