@@ -26,6 +26,8 @@ if NumpyVersion(np.__version__) < "1.22.0":
             return _validate(cls, val, field)
 
     class PotentialNDArray(Generic[T], np.ndarray):
+        """Like NDArray, but validation errors result in None."""
+
         @classmethod
         def __get_validators__(cls):
             yield cls.validate
