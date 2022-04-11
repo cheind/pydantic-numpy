@@ -1,22 +1,23 @@
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 from pydantic import BaseSettings, ValidationError, BaseModel
-from pydantic_numpy import NDArray, NPFileDesc
+from pydantic_numpy import NDArray, NPFileDesc, PotentialNDArray
 
 JSON_ENCODERS = {np.ndarray: lambda arr: arr.tolist()}
 
 
-def test_numpy_field(tmpdir):
-    class MySettings(BaseSettings):
-        K: NDArray[np.float32]
+class MySettings(BaseSettings):
+    K: NDArray[np.float32]
 
-        class Config:
-            json_encoders = {np.ndarray: lambda arr: arr.tolist()}
+    class Config:
+        json_encoders = {np.ndarray: lambda arr: arr.tolist()}
 
+
+def test_init_from_values():
     # Directly specify values
     cfg = MySettings(K=[1, 2])
     assert_allclose(cfg.K, [1.0, 2.0])
@@ -27,22 +28,30 @@ def test_numpy_field(tmpdir):
     assert_allclose(cfg.K, [[1.0, 0], [0.0, 1.0]])
     assert cfg.K.dtype == np.float32
 
+
+def test_load_from_npy_path(tmpdir):
     # Load from npy
     np.save(Path(tmpdir) / "data.npy", np.arange(5))
     cfg = MySettings(K={"path": Path(tmpdir) / "data.npy"})
     assert_allclose(cfg.K, [0.0, 1.0, 2.0, 3.0, 4.0])
     assert cfg.K.dtype == np.float32
 
+
+def test_load_from_NPFileDesc(tmpdir):
     np.save(Path(tmpdir) / "data.npy", np.arange(5))
     cfg = MySettings(K=NPFileDesc(path=Path(tmpdir) / "data.npy"))
     assert_allclose(cfg.K, [0.0, 1.0, 2.0, 3.0, 4.0])
     assert cfg.K.dtype == np.float32
 
+
+def test_load_field_from_npz(tmpdir):
     np.savez(Path(tmpdir) / "data.npz", values=np.arange(5))
     cfg = MySettings(K={"path": Path(tmpdir) / "data.npz", "key": "values"})
     assert_allclose(cfg.K, [0.0, 1.0, 2.0, 3.0, 4.0])
     assert cfg.K.dtype == np.float32
 
+
+def test_exceptional(tmpdir):
     with pytest.raises(ValidationError):
         MySettings(K={"path": Path(tmpdir) / "nosuchfile.npz", "key": "values"})
 
@@ -55,7 +64,20 @@ def test_numpy_field(tmpdir):
     with pytest.raises(ValidationError):
         MySettings(K="absc")
 
+
+def test_unspecified_npdtype():
     # Not specifying a dtype will use numpy default dtype resolver
+
+    class MySettingsNoGeneric(BaseSettings):
+        K: NDArray
+
+    cfg = MySettingsNoGeneric(K=[1, 2])
+    assert_allclose(cfg.K, [1, 2])
+    assert cfg.K.dtype == int
+
+
+def test_json_encoders():
+    import json
 
     class MySettingsNoGeneric(BaseSettings):
         K: NDArray
@@ -64,18 +86,45 @@ def test_numpy_field(tmpdir):
             json_encoders = {np.ndarray: lambda arr: arr.tolist()}
 
     cfg = MySettingsNoGeneric(K=[1, 2])
-    assert_allclose(cfg.K, [1, 2])
-    assert cfg.K.dtype == int
+    jdata = json.loads(cfg.json())
 
-    assert cfg.json()
+    assert "K" in jdata
+    assert type(jdata["K"]) == list
+    assert jdata["K"] == list([1, 2])
 
-    # Optional test
 
+def test_optional_construction():
     class MySettingsOptional(BaseSettings):
-        K: Optional[NDArray]
+        K: Optional[NDArray[np.float32]]
 
     cfg = MySettingsOptional()
+    assert cfg.K is None
 
+    cfg = MySettingsOptional(K=[1, 2])
+    assert type(cfg.K) == np.ndarray
+    assert cfg.K.dtype == np.float32
+
+
+def test_potential_array(tmpdir):
+    class MySettingsPotential(BaseSettings):
+        K: PotentialNDArray[np.float32]
+
+    np.savez(Path(tmpdir) / "data.npz", values=np.arange(5))
+
+    cfg = MySettingsPotential(K={"path": Path(tmpdir) / "data.npz", "key": "values"})
+    assert cfg.K is not None
+    assert_allclose(cfg.K, [0.0, 1.0, 2.0, 3.0, 4.0])
+
+    # Path not found
+    cfg = MySettingsPotential(K={"path": Path(tmpdir) / "nothere.npz", "key": "values"})
+    assert cfg.K is None
+
+    # Key not there
+    cfg = MySettingsPotential(K={"path": Path(tmpdir) / "data.npz", "key": "nothere"})
+    assert cfg.K is None
+
+
+def test_subclass_basemodel():
     class MyModelField(BaseModel):
         K: NDArray[np.float32]
 
@@ -83,14 +132,14 @@ def test_numpy_field(tmpdir):
             json_encoders = JSON_ENCODERS
             arbitrary_types_allowed = True
 
-    model_field = MyModelField(K=[1.0, 2.0])
-    assert model_field.json()
-
     class MyModel(BaseModel):
         L: dict[str, MyModelField]
 
         class Config:
             json_encoders = JSON_ENCODERS
+
+    model_field = MyModelField(K=[1.0, 2.0])
+    assert model_field.json()
 
     model = MyModel(L={"a": MyModelField(K=[1.0, 2.0])})
     assert model.L["a"].K.dtype == np.dtype("float32")

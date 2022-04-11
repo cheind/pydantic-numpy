@@ -3,7 +3,7 @@ from typing import Any, Generic, Mapping, Optional, Type, TypeVar
 
 import numpy as np
 from numpy.lib import NumpyVersion
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 from pydantic.fields import ModelField
 
 T = TypeVar("T", bound=np.generic)
@@ -22,8 +22,20 @@ if NumpyVersion(np.__version__) < "1.22.0":
             yield cls.validate
 
         @classmethod
-        def validate(cls, val: Any, field: ModelField):
+        def validate(cls, val: Any, field: ModelField) -> np.ndarray:
             return _validate(cls, val, field)
+
+    class PotentialNDArray(Generic[T], np.ndarray):
+        @classmethod
+        def __get_validators__(cls):
+            yield cls.validate
+
+        @classmethod
+        def validate(cls, val: Any, field: ModelField) -> Optional[np.ndarray]:
+            try:
+                return _validate(cls, val, field)
+            except ValueError:
+                return None
 
 
 else:
@@ -34,8 +46,20 @@ else:
             yield cls.validate
 
         @classmethod
-        def validate(cls, val: Any, field: ModelField):
+        def validate(cls, val: Any, field: ModelField) -> Optional[np.ndarray]:
             return _validate(cls, val, field)
+
+    class PotentialNDArray(Generic[T], np.ndarray[Any, T]):
+        @classmethod
+        def __get_validators__(cls):
+            yield cls.validate
+
+        @classmethod
+        def validate(cls, val: Any, field: ModelField) -> Optional[np.ndarray]:
+            try:
+                return _validate(cls, val, field)
+            except ValueError:
+                return None
 
 
 def _validate(cls: Type, val: Any, field: ModelField) -> np.ndarray:
@@ -46,15 +70,19 @@ def _validate(cls: Type, val: Any, field: ModelField) -> np.ndarray:
         path = val.path.resolve().absolute()
         key = val.key
         if path.suffix.lower() not in [".npz", ".npy"]:
-            raise ValidationError("Expected npz or npy file.")
-
+            raise ValueError("Expected npz or npy file.")
+        if not path.is_file():
+            raise ValueError(f"Path does not exist {path}")
         try:
             content = np.load(str(path))
         except FileNotFoundError:
-            raise ValidationError(f"Failed to load numpy data from file {path}")
+            raise ValueError(f"Failed to load numpy data from file {path}")
         if path.suffix.lower() == ".npz":
             key = key or content.files[0]
-            data = content[key]
+            try:
+                data = content[key]
+            except KeyError:
+                raise ValueError(f"Key {key} not found in npz.")
         else:
             data = content
     else:
