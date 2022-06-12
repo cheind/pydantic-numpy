@@ -19,7 +19,7 @@ class NPFileDesc(BaseModel):
         return value.resolve().absolute()
 
 
-class CommonNDArray(ABC):
+class _CommonNDArray(ABC):
     @classmethod
     @abstractmethod
     def validate(cls, val: Any, field: ModelField):
@@ -74,13 +74,13 @@ class CommonNDArray(ABC):
         return np.asarray(data)
 
 
-class NDArray(Generic[T], nd_array_type, CommonNDArray):
+class NDArray(Generic[T], nd_array_type, _CommonNDArray):
     @classmethod
     def validate(cls, val: Any, field: ModelField) -> np.ndarray:
         return cls._validate(val, field)
 
 
-class PotentialNDArray(Generic[T], nd_array_type, CommonNDArray):
+class PotentialNDArray(Generic[T], nd_array_type, _CommonNDArray):
     """Like NDArray, but validation errors result in None."""
 
     @classmethod
