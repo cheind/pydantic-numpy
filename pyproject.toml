@@ -15,6 +15,7 @@ pydantic = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
+flake8 = "^4.0.1"
 
 [tool.isort]
 profile = "black"

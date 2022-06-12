@@ -3,7 +3,7 @@ from typing import Any, Generic, Mapping, Optional, Type, TypeVar
 
 import numpy as np
 from numpy.lib import NumpyVersion
-from pydantic import BaseModel, FilePath
+from pydantic import BaseModel, FilePath, validator
 from pydantic.fields import ModelField
 
 T = TypeVar("T", bound=np.generic)
@@ -13,6 +13,10 @@ nd_array_type = np.ndarray if NumpyVersion(np.__version__) < "1.22.0" else np.nd
 class NPFileDesc(BaseModel):
     path: FilePath = ...
     key: Optional[str] = None
+
+    @validator("path")
+    def absolute(cls, value):
+        return value.resolve().absolute()
 
 
 class CommonNDArray(ABC):
@@ -34,29 +38,33 @@ class CommonNDArray(ABC):
         yield cls.validate
 
     @classmethod
-    def _validate(cls: Type, val: Any, field: ModelField) -> np.ndarray:
+    def _validate(cls: Type, val: Any, field: ModelField) -> "NDArray":
         if isinstance(val, Mapping):
             val = NPFileDesc(**val)
+
         if isinstance(val, NPFileDesc):
             val: NPFileDesc
-            path = val.path.resolve().absolute()
-            key = val.key
-            if path.suffix.lower() not in [".npz", ".npy"]:
+
+            if val.path.suffix.lower() not in [".npz", ".npy"]:
                 raise ValueError("Expected npz or npy file.")
-            if not path.is_file():
-                raise ValueError(f"Path does not exist {path}")
+
+            if not val.path.is_file():
+                raise ValueError(f"Path does not exist {val.path}")
+
             try:
-                content = np.load(str(path))
+                content = np.load(str(val.path))
             except FileNotFoundError:
-                raise ValueError(f"Failed to load numpy data from file {path}")
-            if path.suffix.lower() == ".npz":
-                key = key or content.files[0]
+                raise ValueError(f"Failed to load numpy data from file {val.path}")
+
+            if val.path.suffix.lower() == ".npz":
+                key = val.key or content.files[0]
                 try:
                     data = content[key]
                 except KeyError:
                     raise ValueError(f"Key {key} not found in npz.")
             else:
                 data = content
+
         else:
             data = val
 
