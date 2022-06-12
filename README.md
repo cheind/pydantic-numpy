@@ -4,32 +4,37 @@
 This tiny library provides support for integrating numpy `np.ndarray`'s into pydantic models / settings. 
 
 ## Usage
-For more examples see [test_array.py](./tests/test_array.py)
+For more examples see [test_ndarray.py](./tests/test_ndarray.py)
 
 ```python
-import numpy as np
-from pydantic import BaseSettings
+from pydantic import BaseModel
 
+import pydantic_numpy.dtype as pnd
 from pydantic_numpy import NDArray
 
-class MySettings(BaseSettings):
-    K: NDArray[np.float32]
+
+class MySettings(BaseModel):
+    K: NDArray[pnd.float32]
 
 
 # Instantiate from array
 cfg = MySettings(K=[1, 2])
 # Instantiate from numpy file
-cfg = MySettings(K={"path": Path(path_to) / "array.npy"})
+cfg = MySettings(K={"path": "path_to/array.npy"})
 # Instantiate from npz file with key
-cfg = MySettings(K={"path": Path(path_to) / "array.npz", "key": "K"})
+cfg = MySettings(K={"path": "path_to/array.npz", "key": "K"})
 
 cfg.K
 # np.ndarray[np.float32]
 ```
 
+### Subfields
+This package also comes with `pydantic_numpy.dtype`, which adds subtyping support such as `NDArray[pnd.float32]`. All subfields must be from this package as numpy dtypes have no [Pydantic support](https://pydantic-docs.helpmanual.io/usage/types/#generic-classes-as-types).
+
+
 ## Install
-```
-pip install git+https://github.com/cheind/pydantic-numpy.git
+```shell
+pip install pydantic-numpy
 ```
 
 ## History
