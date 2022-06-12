@@ -13,16 +13,16 @@ import pydantic_numpy.dtype as pnd
 from pydantic_numpy import NDArray
 
 
-class MySettings(BaseModel):
+class MyPydanticNumpyModel(BaseModel):
     K: NDArray[pnd.float32]
 
 
 # Instantiate from array
-cfg = MySettings(K=[1, 2])
+cfg = MyPydanticNumpyModel(K=[1, 2])
 # Instantiate from numpy file
-cfg = MySettings(K={"path": "path_to/array.npy"})
+cfg = MyPydanticNumpyModel(K={"path": "path_to/array.npy"})
 # Instantiate from npz file with key
-cfg = MySettings(K={"path": "path_to/array.npz", "key": "K"})
+cfg = MyPydanticNumpyModel(K={"path": "path_to/array.npz", "key": "K"})
 
 cfg.K
 # np.ndarray[np.float32]
