@@ -1,17 +1,19 @@
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
-from pydantic import BaseSettings, ValidationError, BaseModel
+from pydantic import BaseModel, ValidationError
+
+import pydantic_numpy.dtype as pnd
 from pydantic_numpy import NDArray, NPFileDesc, PotentialNDArray
 
 JSON_ENCODERS = {np.ndarray: lambda arr: arr.tolist()}
 
 
-class MySettings(BaseSettings):
-    K: NDArray[np.float32]
+class MySettings(BaseModel):
+    K: NDArray[pnd.float32]
 
     class Config:
         json_encoders = {np.ndarray: lambda arr: arr.tolist()}
@@ -68,7 +70,7 @@ def test_exceptional(tmpdir):
 def test_unspecified_npdtype():
     # Not specifying a dtype will use numpy default dtype resolver
 
-    class MySettingsNoGeneric(BaseSettings):
+    class MySettingsNoGeneric(BaseModel):
         K: NDArray
 
     cfg = MySettingsNoGeneric(K=[1, 2])
@@ -79,7 +81,7 @@ def test_unspecified_npdtype():
 def test_json_encoders():
     import json
 
-    class MySettingsNoGeneric(BaseSettings):
+    class MySettingsNoGeneric(BaseModel):
         K: NDArray
 
         class Config:
@@ -94,8 +96,8 @@ def test_json_encoders():
 
 
 def test_optional_construction():
-    class MySettingsOptional(BaseSettings):
-        K: Optional[NDArray[np.float32]]
+    class MySettingsOptional(BaseModel):
+        K: Optional[NDArray[pnd.float32]]
 
     cfg = MySettingsOptional()
     assert cfg.K is None
@@ -106,8 +108,8 @@ def test_optional_construction():
 
 
 def test_potential_array(tmpdir):
-    class MySettingsPotential(BaseSettings):
-        K: PotentialNDArray[np.float32]
+    class MySettingsPotential(BaseModel):
+        K: PotentialNDArray[pnd.float32]
 
     np.savez(Path(tmpdir) / "data.npz", values=np.arange(5))
 
@@ -126,11 +128,10 @@ def test_potential_array(tmpdir):
 
 def test_subclass_basemodel():
     class MyModelField(BaseModel):
-        K: NDArray[np.float32]
+        K: NDArray[pnd.float32]
 
         class Config:
             json_encoders = JSON_ENCODERS
-            arbitrary_types_allowed = True
 
     class MyModel(BaseModel):
         L: dict[str, MyModelField]

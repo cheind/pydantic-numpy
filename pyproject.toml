@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "pydantic_numpy"
+version = "1.1.2"
+description = "Seamlessly integrate numpy arrays into pydantic models"
+authors = ["Christoph Heindl, Can H. Tartanoglu <canhtart@gmail.com>"]
+license = "MIT"
+
+readme = "README.md"
+packages = [{include = "pydantic_numpy"}]
+
+[tool.poetry.dependencies]
+python = ">=3.7, <3.11"
+numpy = "*"
+pydantic = "*"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.1.2"
+
+[tool.isort]
+profile = "black"
+
+[tool.black]
+line-length = 120
+target-version = ["py310"]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
