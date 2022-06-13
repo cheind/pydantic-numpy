@@ -12,21 +12,21 @@ from pydantic_numpy import NDArray, NPFileDesc, PotentialNDArray
 JSON_ENCODERS = {np.ndarray: lambda arr: arr.tolist()}
 
 
-class MySettings(BaseModel):
+class NDArrayTestingModel(BaseModel):
     K: NDArray[pnd.float32]
 
     class Config:
-        json_encoders = {np.ndarray: lambda arr: arr.tolist()}
+        json_encoders = JSON_ENCODERS
 
 
 def test_init_from_values():
     # Directly specify values
-    cfg = MySettings(K=[1, 2])
+    cfg = NDArrayTestingModel(K=[1, 2])
     assert_allclose(cfg.K, [1.0, 2.0])
     assert cfg.K.dtype == np.float32
     assert cfg.json()
 
-    cfg = MySettings(K=np.eye(2))
+    cfg = NDArrayTestingModel(K=np.eye(2))
     assert_allclose(cfg.K, [[1.0, 0], [0.0, 1.0]])
     assert cfg.K.dtype == np.float32
 
@@ -34,46 +34,46 @@ def test_init_from_values():
 def test_load_from_npy_path(tmpdir):
     # Load from npy
     np.save(Path(tmpdir) / "data.npy", np.arange(5))
-    cfg = MySettings(K={"path": Path(tmpdir) / "data.npy"})
+    cfg = NDArrayTestingModel(K={"path": Path(tmpdir) / "data.npy"})
     assert_allclose(cfg.K, [0.0, 1.0, 2.0, 3.0, 4.0])
     assert cfg.K.dtype == np.float32
 
 
 def test_load_from_NPFileDesc(tmpdir):
     np.save(Path(tmpdir) / "data.npy", np.arange(5))
-    cfg = MySettings(K=NPFileDesc(path=Path(tmpdir) / "data.npy"))
+    cfg = NDArrayTestingModel(K=NPFileDesc(path=Path(tmpdir) / "data.npy"))
     assert_allclose(cfg.K, [0.0, 1.0, 2.0, 3.0, 4.0])
     assert cfg.K.dtype == np.float32
 
 
 def test_load_field_from_npz(tmpdir):
     np.savez(Path(tmpdir) / "data.npz", values=np.arange(5))
-    cfg = MySettings(K={"path": Path(tmpdir) / "data.npz", "key": "values"})
+    cfg = NDArrayTestingModel(K={"path": Path(tmpdir) / "data.npz", "key": "values"})
     assert_allclose(cfg.K, [0.0, 1.0, 2.0, 3.0, 4.0])
     assert cfg.K.dtype == np.float32
 
 
 def test_exceptional(tmpdir):
     with pytest.raises(ValidationError):
-        MySettings(K={"path": Path(tmpdir) / "nosuchfile.npz", "key": "values"})
+        NDArrayTestingModel(K={"path": Path(tmpdir) / "nosuchfile.npz", "key": "values"})
 
     with pytest.raises(ValidationError):
-        MySettings(K={"path": Path(tmpdir) / "nosuchfile.npy", "key": "nosuchkey"})
+        NDArrayTestingModel(K={"path": Path(tmpdir) / "nosuchfile.npy", "key": "nosuchkey"})
 
     with pytest.raises(ValidationError):
-        MySettings(K={"path": Path(tmpdir) / "nosuchfile.npy"})
+        NDArrayTestingModel(K={"path": Path(tmpdir) / "nosuchfile.npy"})
 
     with pytest.raises(ValidationError):
-        MySettings(K="absc")
+        NDArrayTestingModel(K="absc")
 
 
 def test_unspecified_npdtype():
     # Not specifying a dtype will use numpy default dtype resolver
 
-    class MySettingsNoGeneric(BaseModel):
+    class NDArrayNoGeneric(BaseModel):
         K: NDArray
 
-    cfg = MySettingsNoGeneric(K=[1, 2])
+    cfg = NDArrayNoGeneric(K=[1, 2])
     assert_allclose(cfg.K, [1, 2])
     assert cfg.K.dtype == int
 
@@ -81,13 +81,13 @@ def test_unspecified_npdtype():
 def test_json_encoders():
     import json
 
-    class MySettingsNoGeneric(BaseModel):
+    class NDArrayNoGeneric(BaseModel):
         K: NDArray
 
         class Config:
-            json_encoders = {np.ndarray: lambda arr: arr.tolist()}
+            json_encoders = JSON_ENCODERS
 
-    cfg = MySettingsNoGeneric(K=[1, 2])
+    cfg = NDArrayNoGeneric(K=[1, 2])
     jdata = json.loads(cfg.json())
 
     assert "K" in jdata
@@ -96,52 +96,46 @@ def test_json_encoders():
 
 
 def test_optional_construction():
-    class MySettingsOptional(BaseModel):
+    class NDArrayOptional(BaseModel):
         K: Optional[NDArray[pnd.float32]]
 
-    cfg = MySettingsOptional()
+    cfg = NDArrayOptional()
     assert cfg.K is None
 
-    cfg = MySettingsOptional(K=[1, 2])
+    cfg = NDArrayOptional(K=[1, 2])
     assert type(cfg.K) == np.ndarray
     assert cfg.K.dtype == np.float32
 
 
 def test_potential_array(tmpdir):
-    class MySettingsPotential(BaseModel):
+    class NDArrayPotential(BaseModel):
         K: PotentialNDArray[pnd.float32]
 
     np.savez(Path(tmpdir) / "data.npz", values=np.arange(5))
 
-    cfg = MySettingsPotential(K={"path": Path(tmpdir) / "data.npz", "key": "values"})
+    cfg = NDArrayPotential(K={"path": Path(tmpdir) / "data.npz", "key": "values"})
     assert cfg.K is not None
     assert_allclose(cfg.K, [0.0, 1.0, 2.0, 3.0, 4.0])
 
     # Path not found
-    cfg = MySettingsPotential(K={"path": Path(tmpdir) / "nothere.npz", "key": "values"})
+    cfg = NDArrayPotential(K={"path": Path(tmpdir) / "nothere.npz", "key": "values"})
     assert cfg.K is None
 
     # Key not there
-    cfg = MySettingsPotential(K={"path": Path(tmpdir) / "data.npz", "key": "nothere"})
+    cfg = NDArrayPotential(K={"path": Path(tmpdir) / "data.npz", "key": "nothere"})
     assert cfg.K is None
 
 
 def test_subclass_basemodel():
-    class MyModelField(BaseModel):
-        K: NDArray[pnd.float32]
-
-        class Config:
-            json_encoders = JSON_ENCODERS
-
-    class MyModel(BaseModel):
-        L: dict[str, MyModelField]
-
-        class Config:
-            json_encoders = JSON_ENCODERS
-
-    model_field = MyModelField(K=[1.0, 2.0])
+    model_field = NDArrayTestingModel(K=[1.0, 2.0])
     assert model_field.json()
 
-    model = MyModel(L={"a": MyModelField(K=[1.0, 2.0])})
+    class MappingTestingModel(BaseModel):
+        L: dict[str, NDArrayTestingModel]
+
+        class Config:
+            json_encoders = JSON_ENCODERS
+
+    model = MappingTestingModel(L={"a": NDArrayTestingModel(K=[1.0, 2.0])})
     assert model.L["a"].K.dtype == np.dtype("float32")
     assert model.json()
