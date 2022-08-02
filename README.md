@@ -1,7 +1,7 @@
 [![Build Status](https://github.com/cheind/pydantic-numpy/actions/workflows/python-package.yml/badge.svg)](https://github.com/cheind/pydantic-numpy/actions/workflows/python-package.yml)
 
 # pydantic-numpy
-This tiny library provides support for integrating numpy `np.ndarray`'s into pydantic models / settings. 
+This library provides support for integrating numpy `np.ndarray`'s into pydantic models. 
 
 ## Usage
 For more examples see [test_ndarray.py](./tests/test_ndarray.py)
@@ -10,11 +10,12 @@ For more examples see [test_ndarray.py](./tests/test_ndarray.py)
 from pydantic import BaseModel
 
 import pydantic_numpy.dtype as pnd
-from pydantic_numpy import NDArray
+from pydantic_numpy import NDArray, NDArrayFp32
 
 
 class MyPydanticNumpyModel(BaseModel):
     K: NDArray[pnd.float32]
+    C: NDArrayFp32  # <- Shorthand for same type as K
 
 
 # Instantiate from array
