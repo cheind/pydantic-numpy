@@ -13,7 +13,7 @@ JSON_ENCODERS = {np.ndarray: lambda arr: arr.tolist()}
 
 
 class NDArrayTestingModel(BaseModel):
-    K: NDArray[pnd.float32]
+    K: pnd.NDArrayFp32
 
     class Config:
         json_encoders = JSON_ENCODERS
@@ -97,7 +97,7 @@ def test_json_encoders():
 
 def test_optional_construction():
     class NDArrayOptional(BaseModel):
-        K: Optional[NDArray[pnd.float32]]
+        K: Optional[pnd.NDArrayFp32]
 
     cfg = NDArrayOptional()
     assert cfg.K is None

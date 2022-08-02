@@ -4,6 +4,8 @@ import numpy as np
 from pydantic import ValidationError
 from pydantic.fields import ModelField
 
+from pydantic_numpy.ndarray import NDArray
+
 
 class _BaseDType:
     @classmethod
@@ -66,6 +68,13 @@ class short(np.int16, _BaseDType):
 int16 = short
 
 
+class int8(np.int8, _BaseDType):
+    pass
+
+
+byte = int8
+
+
 class uintp(np.uint64, _BaseDType):
     pass
 
@@ -85,3 +94,29 @@ class ushort(np.uint16, _BaseDType):
 
 
 uint16 = ushort
+
+
+class uint8(np.uint8, _BaseDType):
+    pass
+
+
+ubyte = uint8
+
+
+# NDArray typings
+
+NDArrayFp64 = NDArray[float64]
+NDArrayFp32 = NDArray[float32]
+NDArrayFp16 = NDArray[float16]
+
+NDArrayInt64 = NDArray[int64]
+NDArrayInt32 = NDArray[int32]
+NDArrayInt16 = NDArray[int16]
+NDArrayInt8 = NDArray[int8]
+
+NDArrayUint64 = NDArray[uint64]
+NDArrayUint32 = NDArray[uint32]
+NDArrayUint16 = NDArray[uint16]
+NDArrayUint8 = NDArray[uint8]
+
+NDArrayBool = NDArray[bool]
