@@ -26,11 +26,11 @@ class _BaseDType:
         return val
 
 
-class dobble(np.float64, _BaseDType):
+class double(np.float64, _BaseDType):
     pass
 
 
-float64 = dobble
+float64 = double
 
 
 class single(np.float32, _BaseDType):
