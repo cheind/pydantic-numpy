@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Optional
+from typing import Dict
 
 import numpy as np
 import pytest
@@ -131,7 +132,7 @@ def test_subclass_basemodel():
     assert model_field.json()
 
     class MappingTestingModel(BaseModel):
-        L: dict[str, NDArrayTestingModel]
+        L: Dict[str, NDArrayTestingModel]
 
         class Config:
             json_encoders = JSON_ENCODERS
