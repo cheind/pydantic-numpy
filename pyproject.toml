@@ -9,8 +9,11 @@ readme = "README.md"
 packages = [{include = "pydantic_numpy"}]
 
 [tool.poetry.dependencies]
-python = ">=3.7, <3.11"
-numpy = "*"
+python = ">=3.7, <3.12"
+numpy = [
+    {version = "<1.22", python = "<3.8"},
+    {version = "^1.22", python = "^3.8"}
+]
 pydantic = "*"
 
 [tool.poetry.dev-dependencies]

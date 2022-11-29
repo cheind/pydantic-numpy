@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any, Generic, Mapping, Optional, Type, TypeVar
+import sys
 
 import numpy as np
 from numpy.lib import NumpyVersion
@@ -7,7 +8,11 @@ from pydantic import BaseModel, FilePath, validator
 from pydantic.fields import ModelField
 
 T = TypeVar("T", bound=np.generic)
-nd_array_type = np.ndarray if NumpyVersion(np.__version__) < "1.22.0" else np.ndarray[Any, T]
+
+if sys.version_info < (3, 9) or NumpyVersion(np.__version__) < "1.22.0":
+    nd_array_type = np.ndarray
+else:
+    nd_array_type = np.ndarray[Any, T]
 
 
 class NPFileDesc(BaseModel):
