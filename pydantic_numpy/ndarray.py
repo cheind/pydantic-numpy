@@ -1,11 +1,25 @@
-from abc import ABC, abstractmethod
-from typing import Any, Generic, Mapping, Optional, Type, TypeVar
+from __future__ import annotations
+
 import sys
+from abc import ABC
+from abc import abstractmethod
+from pathlib import Path
+from typing import Any
+from typing import Generic
+from typing import Mapping
+from typing import Optional
+from typing import TypeVar
+from typing import TYPE_CHECKING
 
 import numpy as np
 from numpy.lib import NumpyVersion
-from pydantic import BaseModel, FilePath, validator
+from pydantic import BaseModel
+from pydantic import FilePath
+from pydantic import validator
 from pydantic.fields import ModelField
+
+if TYPE_CHECKING:
+    from pydantic.typing import CallableGenerator
 
 T = TypeVar("T", bound=np.generic)
 
@@ -20,18 +34,21 @@ class NPFileDesc(BaseModel):
     key: Optional[str] = None
 
     @validator("path")
-    def absolute(cls, value):
+    def absolute(cls, value: Path) -> Path:
         return value.resolve().absolute()
 
 
 class _CommonNDArray(ABC):
+
     @classmethod
     @abstractmethod
-    def validate(cls, val: Any, field: ModelField):
+    def validate(cls, val: Any, field: ModelField) -> nd_array_type:
         ...
 
     @classmethod
-    def __modify_schema__(cls, field_schema, field: Optional[ModelField]):
+    def __modify_schema__(
+        cls, field_schema: dict[str, Any], field: ModelField | None
+    ) -> None:
         if field and field.sub_fields:
             type_with_potential_subtype = f"np.ndarray[{field.sub_fields[0]}]"
         else:
@@ -39,11 +56,11 @@ class _CommonNDArray(ABC):
         field_schema.update({"type": type_with_potential_subtype})
 
     @classmethod
-    def __get_validators__(cls):
+    def __get_validators__(cls) -> CallableGenerator:
         yield cls.validate
 
-    @classmethod
-    def _validate(cls: Type, val: Any, field: ModelField) -> "NDArray":
+    @staticmethod
+    def _validate(val: Any, field: ModelField) -> nd_array_type:
         if isinstance(val, Mapping):
             val = NPFileDesc(**val)
 
@@ -81,7 +98,7 @@ class _CommonNDArray(ABC):
 
 class NDArray(Generic[T], nd_array_type, _CommonNDArray):
     @classmethod
-    def validate(cls, val: Any, field: ModelField) -> np.ndarray:
+    def validate(cls, val: Any, field: ModelField) -> nd_array_type:
         return cls._validate(val, field)
 
 
@@ -89,7 +106,7 @@ class PotentialNDArray(Generic[T], nd_array_type, _CommonNDArray):
     """Like NDArray, but validation errors result in None."""
 
     @classmethod
-    def validate(cls, val: Any, field: ModelField) -> Optional[np.ndarray]:
+    def validate(cls, val: Any, field: ModelField) -> Optional[nd_array_type]:
         try:
             return cls._validate(val, field)
         except ValueError:

@@ -1,4 +1,8 @@
+from __future__ import annotations
+
 from typing import Any
+from typing import Dict
+from typing import TYPE_CHECKING
 
 import numpy as np
 from pydantic import ValidationError
@@ -6,18 +10,21 @@ from pydantic.fields import ModelField
 
 from pydantic_numpy.ndarray import NDArray
 
+if TYPE_CHECKING:
+    from pydantic.typing import CallableGenerator
+
 
 class _BaseDType:
     @classmethod
-    def __modify_schema__(cls, field_schema):
+    def __modify_schema__(cls, field_schema: dict[str, Any]) -> None:
         field_schema.update({"type": cls.__name__})
 
     @classmethod
-    def __get_validators__(cls):
+    def __get_validators__(cls) -> CallableGenerator:
         yield cls.validate
 
     @classmethod
-    def validate(cls, val: Any, field: ModelField):
+    def validate(cls, val: Any, field: ModelField) -> "_BaseDType":
         if field.sub_fields:
             msg = f"{cls.__name__} has no subfields"
             raise ValidationError(msg)
