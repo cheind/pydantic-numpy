@@ -1,37 +1,44 @@
 import numpy as np
+import pytest
 from pydantic import BaseModel
 
 import pydantic_numpy.dtype as pnd
 
 
-def test_float32():
-    class MyFloat32Model(BaseModel):
-        V: pnd.float32
+@pytest.mark.parametrize("data", (1, 1.0))
+@pytest.mark.parametrize(
+    "pnp_dtype,np_dtype", (
+            (pnd.float16, np.float16),
+            (pnd.float32, np.float32),
+            (pnd.float64, np.float64),
+            (pnd.float128, np.float128),
+            (pnd.int8, np.int8),
+            (pnd.int16, np.int16),
+            (pnd.int32, np.int32),
+            (pnd.int64, np.int64),
+            (pnd.uint8, np.uint8),
+            (pnd.uint16, np.uint16),
+            (pnd.uint32, np.uint32),
+            (pnd.uint64, np.uint64),
+    )
+)
+def test_float32(data, pnp_dtype, np_dtype):
+    class MyModel(BaseModel):
+        V: pnp_dtype
 
-    model_from_int = MyFloat32Model(V=1)
-    assert model_from_int.V == np.float32(1)
-
-    model_from_float = MyFloat32Model(V=1.0)
-    assert model_from_float.V == np.float32(1)
+    assert MyModel(V=data).V == np_dtype(data)
 
 
-def test_int32():
-    class MyInt32Model(BaseModel):
-        V: pnd.int32
+@pytest.mark.parametrize("data", (1 + 1j, 1.0 + 1.0j))
+@pytest.mark.parametrize(
+    "pnp_dtype,np_dtype", (
+            (pnd.complex64, np.complex64),
+            (pnd.complex128, np.complex128),
+            (pnd.complex256, np.complex256),
+    )
+)
+def test_complex256(data, pnp_dtype, np_dtype):
+    class MyModel(BaseModel):
+        V: pnp_dtype
 
-    model_from_int = MyInt32Model(V=1)
-    assert model_from_int.V == np.int32(1)
-
-    model_from_float = MyInt32Model(V=1.0)
-    assert model_from_float.V == np.int32(1)
-
-
-def test_complex256():
-    class MyComplex256Model(BaseModel):
-        V: pnd.complex256
-
-    model_from_int = MyComplex256Model(V=1 + 1j)
-    assert model_from_int.V == np.complex256(1 + 1j)
-
-    model_from_float = MyComplex256Model(V=1.0 + 1.j)
-    assert model_from_float.V == np.complex256(1 + 1.j)
+    assert MyModel(V=data).V == np_dtype(data)
