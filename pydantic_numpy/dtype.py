@@ -40,74 +40,76 @@ class double(np.double, _BaseDType):
 float64 = double
 
 
-class single(np.float32, _BaseDType):
+class single(np.single, _BaseDType):
     pass
 
 
 float32 = single
 
 
-class half(np.float16, _BaseDType):
+class half(np.half, _BaseDType):
     pass
 
 
 float16 = half
 
 
-class long(np.int64, _BaseDType):
+class int_(np.int_, _BaseDType):
     pass
 
 
-int64 = long
+int64 = int_
 
 
-class intc(np.int32, _BaseDType):
+class intc(np.intc, _BaseDType):
     pass
 
 
 int32 = intc
 
 
-class short(np.int16, _BaseDType):
+class short(np.short, _BaseDType):
     pass
 
 
 int16 = short
 
 
-class int8(np.int8, _BaseDType):
+class byte(np.byte, _BaseDType):
     pass
 
 
-byte = int8
+int8 = byte
 
 
-class uintp(np.uint64, _BaseDType):
+class uint(np.uint, _BaseDType):
     pass
 
 
-uint64 = uintp
+uint64 = uint
 
 
-class uintc(np.uint32, _BaseDType):
+class uintc(np.uintc, _BaseDType):
     pass
 
 
 uint32 = uintc
 
 
-class ushort(np.uint16, _BaseDType):
+class ushort(np.ushort, _BaseDType):
     pass
 
 
 uint16 = ushort
 
 
-class uint8(np.uint8, _BaseDType):
+class ubyte(np.ubyte, _BaseDType):
     pass
 
 
-ubyte = uint8
+uint8 = ubyte
+
+
 class clongdouble(np.clongdouble, _BaseDType):
     pass
 
