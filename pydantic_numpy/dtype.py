@@ -26,7 +26,14 @@ class _BaseDType:
         return val
 
 
-class double(np.float64, _BaseDType):
+class longdouble(np.longdouble, _BaseDType):
+    pass
+
+
+float128 = longdouble
+
+
+class double(np.double, _BaseDType):
     pass
 
 
@@ -105,6 +112,7 @@ ubyte = uint8
 
 # NDArray typings
 
+NDArrayFp128 = NDArray[float128]
 NDArrayFp64 = NDArray[float64]
 NDArrayFp32 = NDArray[float32]
 NDArrayFp16 = NDArray[float16]
