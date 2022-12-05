@@ -108,7 +108,25 @@ class uint8(np.uint8, _BaseDType):
 
 
 ubyte = uint8
+class clongdouble(np.clongdouble, _BaseDType):
+    pass
 
+
+complex256 = clongdouble
+
+
+class cdouble(np.cdouble, _BaseDType):
+    pass
+
+
+complex128 = cdouble
+
+
+class csingle(np.csingle, _BaseDType):
+    pass
+
+
+complex64 = csingle
 
 # NDArray typings
 
@@ -126,5 +144,9 @@ NDArrayUint64 = NDArray[uint64]
 NDArrayUint32 = NDArray[uint32]
 NDArrayUint16 = NDArray[uint16]
 NDArrayUint8 = NDArray[uint8]
+
+NDArrayComplex256 = NDArray[complex256]
+NDArrayComplex128 = NDArray[complex128]
+NDArrayComplex64 = NDArray[complex64]
 
 NDArrayBool = NDArray[bool]
